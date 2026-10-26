@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartDuty</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- QR Code Generator & Scanner Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background-color: white !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <header class="bg-slate-900 text-white shadow-lg no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-600 rounded-xl shadow-md flex items-center justify-center">
+                    <i class="fa-solid fa-user-shield text-xl text-amber-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight flex items-center gap-2">
+                        SmartDuty
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Current User Session Status & Settings Link -->
+            <div class="flex items-center gap-2">
+                <button onclick="promptSettingsAccess()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold border border-slate-700 transition flex items-center gap-1.5" title="Halaman Tetapan Sistem">
+                    <i class="fa-solid fa-gear text-amber-400"></i>
+                    <span>Tetapan / Admin</span>
+                </button>
+
+                <div id="nav-user-info" class="hidden flex items-center gap-3 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
+                    <div class="text-right text-xs">
+                        <p id="user-display-name" class="font-bold text-indigo-300">Nama Pengguna</p>
+                        <p id="user-display-role" class="text-[10px] text-slate-400 uppercase font-semibold">Peranan</p>
+                    </div>
+                    <button onclick="logout()" class="p-2 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white rounded-lg transition text-xs flex items-center gap-1 font-semibold" title="Log Keluar">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- AUTHENTICATION SECTION -->
+        <div id="section-auth" class="max-w-md mx-auto mt-4 mb-10">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+                <div class="bg-indigo-700 p-6 text-white text-center relative">
+                    <div class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-3 border border-white/20">
+                        <i class="fa-solid fa-shield-halved text-3xl text-amber-300"></i>
+                    </div>
+                    <h2 class="text-xl font-bold">Log Masuk Portal</h2>
+                    <p class="text-xs text-indigo-200 mt-1">Security PGMSB</p>
+                </div>
+
+                <div class="p-6">
+                    <!-- Login Form -->
+                    <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ID Pass / No. Staf</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                    <i class="fa-solid fa-id-card text-xs"></i>
+                                </span>
+                                <input type="text" id="auth-id" required placeholder="" 
+                                    class="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition uppercase">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Kata Laluan</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                    <i class="fa-solid fa-lock text-xs"></i>
+                                </span>
+                                <input type="password" id="auth-password" required placeholder="******" 
+                                    class="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                            </div>
+                        </div>
+
+                        <div id="auth-error" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 font-medium text-center">
+                            ID atau kata laluan tidak sah!
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-right-to-bracket text-xs"></i> Log Masuk
+                        </button>
+
+                        <div class="text-center pt-2 border-t border-slate-100 flex flex-col gap-2">
+                            <button type="button" onclick="toggleRegisterView(true)" class="text-xs text-indigo-600 font-bold hover:underline">
+                                Mendaftar Sebagai Anggota Baru?
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Registration Form for Anggota -->
+                    <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                        <div class="text-center border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-bold text-slate-800">Daftar Akaun Anggota baru</h3>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Penuh *</label>
+                            <input type="text" id="reg-nama" required placeholder="" 
+                                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ID Pass / No. Staf *</label>
+                            <input type="text" id="reg-id" required placeholder="" 
+                                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none uppercase">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Cipta Kata Laluan *</label>
+                            <input type="password" id="reg-password" required placeholder="••••••••" 
+                                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+
+                        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow transition">
+                            Daftar Akaun
+                        </button>
+
+                        <div class="text-center">
+                            <button type="button" onclick="toggleRegisterView(false)" class="text-xs text-slate-500 font-semibold hover:underline">
+                                Kembali ke Log Masuk
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-portal-anggota" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jam OT Diluluskan Bulan Ini</p>
+                        <h3 id="anggota-stat-jam-bulan" class="text-2xl font-black text-emerald-600 mt-1">0.0 Jam</h3>
+                        <p id="anggota-stat-Shift-bulan" class="text-xs text-slate-500 mt-0.5">0 Shift OT</p>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 text-xl font-bold">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jam OT Keseluruhan</p>
+                        <h3 id="anggota-stat-jam-total" class="text-2xl font-black text-indigo-600 mt-1">0.0 Jam</h3>
+                        <p class="text-xs text-slate-500 mt-0.5"></p>
+                    </div>
+                    <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-xl font-bold">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                </div>
+
+                <!-- Combined Permohonan OT baru Card & Button -->
+                <div onclick="openScannerModal()" class="bg-gradient-to-br from-indigo-600 to-indigo-800 p-5 rounded-2xl shadow-md text-white flex items-center justify-between cursor-pointer hover:from-indigo-700 hover:to-indigo-900 transition border-2 border-indigo-500 group">
+                    <div>
+                        <p class="text-xs font-bold text-indigo-200 uppercase tracking-wider">Permohonan OT baru</p>
+                        <h3 class="text-lg font-extrabold mt-0.5 flex items-center gap-1.5">
+                            <span>Imbas QR Kelulusan</span>
+                        </h3>
+                        <p class="text-xs text-indigo-200 mt-0.5"></p>
+                    </div>
+                    <button type="button" class="px-3.5 py-2.5 bg-white text-indigo-700 hover:bg-amber-300 hover:text-indigo-900 rounded-xl text-xs font-black shadow transition flex items-center gap-1.5 shrink-0 group-hover:scale-105">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>+ Isi Permohonan OT</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- OT Record Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-indigo-600"></i> Rekod & Semakan OT Anggota
+                        </h2>
+                    </div>
+
+                    <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                        <i class="fa-regular fa-calendar text-slate-400 text-sm pl-1"></i>
+                        <input type="month" id="filter-bulan-anggota" onchange="renderAnggotaOTTable()" class="bg-transparent text-xs font-bold text-slate-700 outline-none">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                            <tr>
+                                <th class="py-3.5 px-4 text-center w-12">BIL</th>
+                                <th class="py-3.5 px-4">Tarikh OT</th>
+                                <th class="py-3.5 px-4">Masa Masuk / Keluar</th>
+                                <th class="py-3.5 px-4">Tempoh Jam</th>
+                                <th class="py-3.5 px-4">Kategori Hari</th>
+                                <th class="py-3.5 px-4">Ketua Pengawal Kelulusan</th>
+                                <th class="py-3.5 px-4">Tujuan / Tugas</th>
+                                <th class="py-3.5 px-4 text-center">Status</th>
+                                <th class="py-3.5 px-4 text-center">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbl-anggota-ot-body" class="divide-y divide-slate-100">
+                            <!-- Injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="anggota-empty-state" class="p-8 text-center hidden">
+                    <i class="fa-solid fa-folder-open text-3xl text-slate-300 mb-2"></i>
+                    <p class="text-xs font-bold text-slate-500">Tiada rekod OT pada bulan ini</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Sila imbas QR Ketua Pengawal untuk menambah rekod OT baru.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-portal-kp" class="hidden space-y-6">
+            <div class="bg-indigo-900 rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-indigo-800 border border-indigo-700 rounded-2xl flex items-center justify-center text-2xl text-amber-300 shadow-inner">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">Ketua Pengawal Bertugas</span>
+                        <h2 id="kp-info-nama" class="text-xl font-black text-white">Ketua Pengawal 1</h2>
+                        <div class="flex items-center gap-3 mt-1 text-xs text-indigo-200">
+                            <span id="kp-info-id" class="font-mono bg-indigo-800/80 px-2.5 py-0.5 rounded-lg border border-indigo-700 font-bold">KP-101</span>
+                            <span class="text-indigo-400">•</span>
+                            <span id="kp-info-Shift" class="font-semibold text-amber-300">Group A</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right bg-indigo-800/50 px-4 py-2.5 rounded-2xl border border-indigo-700/50 w-full md:w-auto text-center md:text-right">
+                    <p class="text-[10px] font-bold text-indigo-300 uppercase">Tarikh & Masa Semasa:</p>
+                    <p id="kp-current-date" class="text-sm font-black text-amber-300 font-mono mt-0.5">-</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- QR Code Card -->
+                <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 text-center flex flex-col justify-between">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full mb-3 border border-emerald-100">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Kod QR Kelulusan Harian Aktif
+                        </div>
+                        <h3 class="text-base font-bold text-slate-800">Kod QR Kelulusan Harian</h3>
+                        <p class="text-xs text-slate-500 mt-1 mb-4">Tunjukkan kod QR ini kepada Anggota untuk diimbas bagi pengesahan OT / Kemaskini / Padam.</p>
+                        
+                        <div class="p-4 bg-slate-50 rounded-2xl inline-block border-2 border-indigo-100 shadow-inner my-2">
+                            <div id="kp-qrcode-box" class="flex justify-center items-center min-h-[200px]"></div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-[11px] text-slate-400 mt-4 italic">
+                        <i class="fa-solid fa-lock mr-1"></i> Kod QR ini dijana berasaskan ID Pass KP anda & tarikh harian automatik.
+                    </p>
+                </div>
+
+                <!-- Members Summary Table with Expandable Detail Records -->
+                <div class="lg:col-span-2 bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-users text-indigo-600"></i>
+                                Ringkasan & Perincian Jam OT Semua Anggota
+                            </h3>
+                            <p class="text-xs text-slate-500">Klik pada nama anggota untuk melihat rekod & perincian OT penuh</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <input type="text" id="kp-search-anggota" onkeyup="renderKPMembersTable()" placeholder="Cari nama / ID..." class="px-3 py-1.5 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-40">
+                            <input type="month" id="kp-filter-bulan" onchange="renderKPMembersTable()" class="px-3 py-1.5 text-xs font-bold border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                                <tr>
+                                    <th class="py-3 px-4">Nama Anggota</th>
+                                    <th class="py-3 px-4 text-center">Bil. Shift OT</th>
+                                    <th class="py-3 px-4 text-center">Jam OT Bulan Ini</th>
+                                    <th class="py-3 px-4 text-center">Jam OT Keseluruhan</th>
+                                    <th class="py-3 px-4 text-center">Kelulusan Terkini</th>
+                                    <th class="py-3 px-2 text-center"><i class="fa-solid fa-chevron-down text-slate-400"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl-kp-members-body" class="divide-y divide-slate-100">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-settings" class="hidden space-y-6 max-w-5xl mx-auto">
+            <div class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl border border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-amber-400 text-slate-900 rounded-2xl flex items-center justify-center text-xl font-black">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-amber-300">Halaman Tetapan & Pentadbiran (Admin Portal)</h2>
+                        <p class="text-xs text-slate-400">Pengurusan Sistem, Pengurusan Anggota & Borang OT</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-print"></i> Cetak Borang OT Rasmi
+                    </button>
+                    <button onclick="closeSettingsPage()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition border border-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left"></i> Kembali / Tutup
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex border-b border-slate-200 no-print gap-2">
+                <button id="tab-btn-official-form" onclick="switchAdminTab('official-form')" class="px-5 py-2.5 font-bold text-xs rounded-t-2xl bg-indigo-600 text-white transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-contract"></i> Borang OT Rasmi Jabatan
+                </button>
+                <button id="tab-btn-anggota-management" onclick="switchAdminTab('anggota-management')" class="px-5 py-2.5 font-bold text-xs rounded-t-2xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition flex items-center gap-2">
+                    <i class="fa-solid fa-users"></i> Pengurusan Anggota
+                </button>
+                <button id="tab-btn-kp-management" onclick="switchAdminTab('kp-management')" class="px-5 py-2.5 font-bold text-xs rounded-t-2xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear"></i> Pengurusan Ketua Pengawal
+                </button>
+            </div>
+
+            <!-- TAB 1: OFFICIAL FORM -->
+            <div id="admin-tab-official-form" class="space-y-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 no-print">
+                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 mb-1">Cari / Pilih Anggota:</label>
+                            <div class="flex items-center gap-1.5">
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400">
+                                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                                    </span>
+                                    <input type="text" id="admin-search-member" onkeyup="filterAdminMembersDropdown()" placeholder="Cari Nama / ID Pass..." class="pl-8 pr-2 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 w-36 sm:w-44">
+                                </div>
+                                <select id="admin-select-member" onchange="renderOfficialOTForm()" class="px-3 py-2 text-xs font-bold border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white max-w-[200px]">
+                                    <!-- Injected via JS -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 mb-1">Pilih Bulan & Tahun:</label>
+                            <input type="month" id="admin-filter-month" onchange="renderOfficialOTForm()" class="px-3 py-2 text-xs font-bold border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-circle-info text-indigo-600 mr-1"></i> Borang rasmi dipaparkan mengikut turutan hari (1 hingga 31) lengkap dengan kelulusan KP.
+                    </p>
+                </div>
+
+                <!-- Printable Sheet View -->
+                <div class="bg-white p-6 sm:p-10 rounded-2xl shadow-lg border border-slate-300 text-slate-900 mx-auto max-w-[900px] overflow-x-auto" id="printable-official-sheet">
+                    <style>
+                        .official-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-family: Arial, sans-serif;
+                            font-size: 11px;
+                        }
+                        .official-table th, .official-table td {
+                            border: 1px solid #000;
+                            padding: 4px 6px;
+                            text-align: center;
+                        }
+                        .official-header {
+                            border: 2px solid #000;
+                            text-align: center;
+                            font-weight: bold;
+                            padding: 8px;
+                            font-size: 14px;
+                            letter-spacing: 0.5px;
+                            font-family: Arial, sans-serif;
+                        }
+                    </style>
+
+                    <div class="official-header mb-2 relative flex items-center justify-center min-h-[50px]">
+                        <span>REKOD KERJA LEBIH MASA JABATAN KESELAMATAN</span>
+                    </div>
+
+                    <div class="text-center font-bold text-xs tracking-wide mb-4">
+                        BORANG REKOD TUNTUTAN KERJA LEBIH MASA HARIAN ANGGOTA
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs font-bold mb-3 px-1">
+                        <div>NAMA PEKERJA : <span id="p2-nama-pekerja" class="underline uppercase font-extrabold">HANDERI</span></div>
+                        <div>NOMBOR PEKERJA : <span id="p2-no-pekerja" class="underline font-extrabold">807555</span></div>
+                    </div>
+                    <div class="text-xs font-bold mb-3 px-1 flex justify-between">
+                        <div>JAWATAN : <span class="underline">ANGGOTA KESELAMATAN</span></div>
+                        <div>BULAN / TAHUN : <span id="p2-bulan-tahun" class="underline uppercase font-extrabold">OKTOBER 2026</span></div>
+                    </div>
+
+                    <table class="official-table">
+                        <thead>
+                            <tr class="bg-gray-100 uppercase font-bold text-[10px]">
+                                <th style="width: 4%;">BIL</th>
+                                <th style="width: 13%;">TARIKH</th>
+                                <th style="width: 10%;">MASA MASUK</th>
+                                <th style="width: 10%;">MASA KELUAR</th>
+                                <th style="width: 9%;">OT HARIAN</th>
+                                <th style="width: 26%;">AKTIVITI / ULASAN</th>
+                                <th style="width: 14%;">KP BERTUGAS</th>
+                                <th style="width: 14%;">TARIKH & MASA KELULUSAN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbl-official-body">
+                            <!-- Injected via JS -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="font-bold">
+                                <td colspan="4" class="text-right pr-3 uppercase">JUMLAH OT HARIAN</td>
+                                <td id="p2-total-ot" class="font-extrabold bg-gray-50">0.0 JAM</td>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: ANGGOTA MANAGEMENT -->
+            <div id="admin-tab-anggota-management" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-3 border-b border-slate-100">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-users text-indigo-600"></i> Pengurusan Akaun Anggota
+                            </h3>
+                            <p class="text-xs text-slate-500">Jumlah Anggota Berdaftar: <span id="admin-count-anggota" class="font-black text-indigo-600">0</span> orang</p>
+                        </div>
+                        <input type="text" id="admin-search-anggota-list" onkeyup="renderAdminAnggotaList()" placeholder="Cari Nama / ID Anggota..." class="px-3 py-1.5 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-56">
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                                <tr>
+                                    <th class="py-3 px-4">ID Pass / No. Staf</th>
+                                    <th class="py-3 px-4">Nama Anggota</th>
+                                    <th class="py-3 px-4">Kata Laluan</th>
+                                    <th class="py-3 px-4 text-center">Jumlah Shift OT</th>
+                                    <th class="py-3 px-4 text-right">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl-admin-anggota-list" class="divide-y divide-slate-100">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: KP MANAGEMENT -->
+            <div id="admin-tab-kp-management" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200">
+                    <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus text-indigo-600"></i> Daftar Ketua Pengawal baru
+                    </h3>
+                    <form id="form-register-kp" onsubmit="handleRegisterKP(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama KP *</label>
+                            <input type="text" id="add-kp-nama" required placeholder="Contoh: Ahmad Zakaria" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ID Pass KP *</label>
+                            <input type="text" id="add-kp-id" required placeholder="Contoh: KP-107" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Shift Tugas *</label>
+                            <select id="add-kp-Shift" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-bold">
+                                <option value="Group A">Group A</option>
+                                <option value="Group B">Group B</option>
+                                <option value="Group C">Group C</option>
+                                <option value="Group D">Group D</option>
+                                <option value="NORMAL">NORMAL</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Kata Laluan *</label>
+                            <input type="password" id="add-kp-password" required placeholder="••••••••" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="md:col-span-2 lg:col-span-4 text-right mt-2">
+                            <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition">
+                                Simpan Ketua Pengawal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200">
+                    <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list text-indigo-600"></i> Senarai Ketua Pengawal Berdaftar
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                                <tr>
+                                    <th class="py-3 px-4">ID Pass</th>
+                                    <th class="py-3 px-4">Nama KP</th>
+                                    <th class="py-3 px-4">Shift Tugas</th>
+                                    <th class="py-3 px-4 text-right">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl-admin-kp-list" class="divide-y divide-slate-100">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL EDIT ANGGOTA BY ADMIN -->
+    <div id="modal-edit-anggota" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
+            <div class="bg-indigo-700 p-4 text-white flex justify-between items-center">
+                <h3 class="text-sm font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-user-pen text-amber-300"></i> Edit Maklumat Anggota
+                </h3>
+                <button onclick="closeEditAnggotaModal()" class="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form onsubmit="handleSaveEditAnggota(event)" class="p-6 space-y-4">
+                <input type="hidden" id="edit-anggota-original-id" value="">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Penuh *</label>
+                    <input type="text" id="edit-anggota-nama" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">ID Pass / No. Staf *</label>
+                    <input type="text" id="edit-anggota-id" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-bold uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Kata Laluan *</label>
+                    <input type="text" id="edit-anggota-password" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeEditAnggotaModal()" class="w-1/2 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow transition">
+                        Simpan Kemaskini
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL APPLICATION FORM AND SCANNER -->
+    <div id="modal-scanner" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-indigo-700 p-4 text-white flex justify-between items-center">
+                <h3 id="modal-scanner-title" class="text-sm font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-file-pen text-amber-300"></i> <span id="modal-title-text">Permohonan OT & Pengesahan QR</span>
+                </h3>
+                <button onclick="closeScannerModal()" class="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-4">
+                <!-- STEP 1: FORM DETAILS -->
+                <div id="scanner-step-form" class="space-y-4">
+                    <input type="hidden" id="editing-record-id" value="">
+                    
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs space-y-1">
+                        <p><strong>Nama Anggota:</strong> <span id="modal-form-nama" class="text-indigo-600 font-bold">-</span></p>
+                        <p><strong>ID Pass / No. Staf:</strong> <span id="modal-form-id" class="font-mono font-bold">-</span></p>
+                    </div>
+
+                    <div id="wrapper-input-kp">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Ketua Pengawal Bertugas *</label>
+                        <select id="ot-input-kp-select" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <!-- Injected dynamically via JS -->
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tarikh OT *</label>
+                        <input type="date" id="ot-input-tarikh" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Hari *</label>
+                        <select id="ot-input-kategori" onchange="handleCategoryChange()" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <option value="HARI KERJA BIASA">HARI KERJA BIASA</option>
+                            <option value="CALLBACK DUTY">CALLBACK DUTY</option>
+                            <option value="OFF DAY">OFF DAY</option>
+                            <option value="REST DAY">REST DAY</option>
+                            <option value="AL">AL</option>
+                            <option value="MC">MC</option>
+                            <option value="CL">CL</option>
+                            <option value="TUGAS LUAR">TUGAS LUAR</option>
+                        </select>
+                    </div>
+
+                    <!-- MILITARY TIME INPUTS -->
+                    <div id="wrapper-input-masa">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Masa Masuk *</label>
+                                <select id="ot-input-masa-masuk" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl font-bold font-mono text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                    <option value="0000">0000 (12:00 Tengah Malam)</option>
+                                    <option value="0100">0100</option>
+                                    <option value="0200">0200</option>
+                                    <option value="0300">0300</option>
+                                    <option value="0400">0400</option>
+                                    <option value="0500">0500</option>
+                                    <option value="0600">0600</option>
+                                    <option value="0700" selected>0700 (7:00 Pagi)</option>
+                                    <option value="0800">0800</option>
+                                    <option value="0900">0900</option>
+                                    <option value="1000">1000</option>
+                                    <option value="1100">1100</option>
+                                    <option value="1200">1200 (12:00 Tengah Hari)</option>
+                                    <option value="1300">1300</option>
+                                    <option value="1400">1400</option>
+                                    <option value="1500">1500</option>
+                                    <option value="1600">1600</option>
+                                    <option value="1700">1700</option>
+                                    <option value="1800">1800</option>
+                                    <option value="1900">1900 (7:00 Malam)</option>
+                                    <option value="2000">2000</option>
+                                    <option value="2100">2100</option>
+                                    <option value="2200">2200</option>
+                                    <option value="2300">2300</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Masa Keluar *</label>
+                                <select id="ot-input-masa-keluar" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl font-bold font-mono text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                    <option value="0000">0000 (12:00 Tengah Malam)</option>
+                                    <option value="0100">0100</option>
+                                    <option value="0200">0200</option>
+                                    <option value="0300">0300</option>
+                                    <option value="0400">0400</option>
+                                    <option value="0500">0500</option>
+                                    <option value="0600">0600</option>
+                                    <option value="0700">0700 (7:00 Pagi)</option>
+                                    <option value="0800">0800</option>
+                                    <option value="0900">0900</option>
+                                    <option value="1000">1000</option>
+                                    <option value="1100">1100</option>
+                                    <option value="1200">1200 (12:00 Tengah Hari)</option>
+                                    <option value="1300">1300</option>
+                                    <option value="1400">1400</option>
+                                    <option value="1500">1500</option>
+                                    <option value="1600">1600</option>
+                                    <option value="1700">1700</option>
+                                    <option value="1800">1800</option>
+                                    <option value="1900" selected>1900 (7:00 Malam)</option>
+                                    <option value="2000">2000</option>
+                                    <option value="2100">2100</option>
+                                    <option value="2200">2200</option>
+                                    <option value="2300">2300</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="wrapper-input-jam">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Bilangan Jam OT (Taip Manual) *</label>
+                        <input type="number" step="0.5" min="0.5" max="24" id="ot-input-jam" required placeholder="Contoh: 12.0" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div id="wrapper-input-tujuan">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tujuan / Tugas OT *</label>
+                        <input type="text" id="ot-input-tujuan" required placeholder="Contoh: Kawalan Keselamatan / Tugas Khas" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <button type="button" id="btn-submit-ot-step" onclick="proceedToQRScanStep()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center gap-2">
+                        <span id="btn-submit-ot-text">Seterusnya: Imbas QR Kelulusan KP</span>
+                        <i id="btn-submit-ot-icon" class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- STEP 2: CAMERA QR SCANNER -->
+                <div id="scanner-step-camera" class="space-y-4 hidden text-center">
+                    <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-xs text-amber-800">
+                        <p class="font-bold" id="qr-step-instructions">Sila halakan kamera ke Kod QR Ketua Pengawal bertugas untuk mengesahkan permohonan/kemaskini</p>
+                        <p id="qr-step-summary-text" class="text-[11px] mt-0.5 text-amber-700 font-medium">Jam OT: -</p>
+                    </div>
+
+                    <div class="relative bg-black rounded-2xl overflow-hidden min-h-[220px] flex items-center justify-center border-2 border-indigo-500 shadow-inner">
+                        <div id="qr-reader-camera" class="w-full"></div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button type="button" id="btn-qr-back" onclick="backToFormStep()" class="w-1/2 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
+                            <i class="fa-solid fa-arrow-left"></i> Kembali
+                        </button>
+                        <button type="button" onclick="closeScannerModal()" class="w-1/2 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl text-xs transition">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // LOCAL STORAGE KEYS & DEFAULT DATA
+        const STORAGE_KEY_USERS = 'ot_app_users_v2';
+        const STORAGE_KEY_RECORDS = 'ot_app_records_v2';
+        const STORAGE_KEY_SESSION = 'ot_app_session_v2';
+
+        const DEFAULT_USERS = [
+            { id: "807555", name: "Handeri", role: "anggota", password: "123" },
+            { id: "ANG-101", name: "Muhammad Ali", role: "anggota", password: "123" },
+            { id: "ANG-102", name: "Siti Nurhaliza", role: "anggota", password: "123" },
+            { id: "KP-101", name: "Ketua Pengawal 1", role: "kp", Shift: "Group A", password: "123" },
+            { id: "KP-102", name: "Ketua Pengawal 2", role: "kp", Shift: "Group B", password: "123" }
+        ];
+
+        let currentUser = null;
+        let html5QrCodeScanner = null;
+        let currentFormPayload = null;
+        let pendingActionType = 'CREATE'; // 'CREATE', 'UPDATE', or 'DELETE'
+        let pendingDeleteRecordId = null;
+
+        // HELPER TO GET CURRENT YYYY-MM AUTOMATICALLY
+        function getCurrentMonthString() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            return `${year}-${month}`;
+        }
+
+        // HELPER FOR 24-HOUR FORMAT TIME DISPLAY
+        function formatMasa24Jam(timeStr) {
+            if (!timeStr) return "-";
+            const cleaned = String(timeStr).replace(':', '');
+            return String(cleaned).padStart(4, '0');
+        }
+
+        // HELPER FOR CATEGORY COLOR STYLES
+        function getCategoryColorClass(kategori) {
+            if (!kategori) return "text-slate-700";
+            const katUpper = kategori.toUpperCase();
+            if (katUpper.includes('CALLBACK')) return "text-blue-600";
+            if (katUpper.includes('OFF') || katUpper.includes('REST')) return "text-red-600";
+            if (katUpper === 'AL') return "text-amber-500";
+            if (katUpper === 'MC') return "text-orange-500";
+            if (katUpper === 'CL') return "text-emerald-600";
+            if (katUpper.includes('TUGAS LUAR')) return "text-purple-600";
+            return "text-slate-700";
+        }
+
+        function formatCategoryDisplay(kategori) {
+            if (!kategori) return "-";
+            const katUpper = kategori.toUpperCase();
+            if (katUpper.includes('HARI KERJA BIASA')) return "HARI KERJA BIASA";
+            if (katUpper.includes('CALLBACK')) return "CALLBACK DUTY";
+            if (katUpper === 'OFF REST') return "OFF DAY";
+            return katUpper;
+        }
+
+        // INITIALIZATION
+        window.addEventListener('load', function() {
+            initStorage();
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+
+            const currentMonth = getCurrentMonthString();
+            
+            const filterAnggota = document.getElementById('filter-bulan-anggota');
+            if (filterAnggota) filterAnggota.value = currentMonth;
+
+            const filterKP = document.getElementById('kp-filter-bulan');
+            if (filterKP) filterKP.value = currentMonth;
+
+            const filterAdmin = document.getElementById('admin-filter-month');
+            if (filterAdmin) filterAdmin.value = currentMonth;
+
+            checkAuthState();
+        });
+
+        function updateLiveClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleString('ms-MY', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            });
+            const kpDateElem = document.getElementById('kp-current-date');
+            if (kpDateElem) kpDateElem.innerText = timeStr;
+        }
+
+        function initStorage() {
+            if (!localStorage.getItem(STORAGE_KEY_USERS)) {
+                localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(DEFAULT_USERS));
+            }
+            if (!localStorage.getItem(STORAGE_KEY_RECORDS)) {
+                localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify([]));
+            }
+        }
+
+        function getUsersList() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || DEFAULT_USERS;
+            } catch (e) {
+                return DEFAULT_USERS;
+            }
+        }
+
+        function saveUsersList(users) {
+            localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+        }
+
+        function getRecords() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY_RECORDS)) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveRecords(records) {
+            localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const idInput = document.getElementById('auth-id').value.trim().toUpperCase();
+            const passInput = document.getElementById('auth-password').value.trim();
+            const errBox = document.getElementById('auth-error');
+
+            const users = getUsersList();
+            const foundUser = users.find(u => u.id.toUpperCase() === idInput && u.password === passInput);
+
+            if (foundUser) {
+                if (errBox) errBox.classList.add('hidden');
+                currentUser = foundUser;
+                localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(currentUser));
+                checkAuthState();
+            } else {
+                if (errBox) {
+                    errBox.innerText = "ID atau kata laluan tidak sah!";
+                    errBox.classList.remove('hidden');
+                }
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const nama = document.getElementById('reg-nama').value.trim();
+            const id = document.getElementById('reg-id').value.trim().toUpperCase();
+            const pass = document.getElementById('reg-password').value.trim();
+
+            const users = getUsersList();
+            if (users.some(u => u.id.toUpperCase() === id)) {
+                alert("ID ini telah wujud dalam sistem! Sila guna ID lain.");
+                return;
+            }
+
+            const newUser = { id, name: nama, role: 'anggota', password: pass };
+            users.push(newUser);
+            saveUsersList(users);
+
+            alert("Pendaftaran akaun berjaya! Sila log masuk.");
+            toggleRegisterView(false);
+            
+            const authIdElem = document.getElementById('auth-id');
+            if (authIdElem) authIdElem.value = id;
+        }
+
+        function toggleRegisterView(showRegister) {
+            const formLogin = document.getElementById('form-login');
+            const formReg = document.getElementById('form-register');
+            const errBox = document.getElementById('auth-error');
+
+            if (errBox) errBox.classList.add('hidden');
+
+            if (showRegister) {
+                if (formLogin) formLogin.classList.add('hidden');
+                if (formReg) formReg.classList.remove('hidden');
+            } else {
+                if (formReg) formReg.classList.add('hidden');
+                if (formLogin) formLogin.classList.remove('hidden');
+            }
+        }
+
+        function checkAuthState() {
+            const sessionData = localStorage.getItem(STORAGE_KEY_SESSION);
+            if (sessionData) {
+                try {
+                    currentUser = JSON.parse(sessionData);
+                } catch (e) {
+                    currentUser = null;
+                }
+            }
+
+            const navUserInfo = document.getElementById('nav-user-info');
+            const userDisplayName = document.getElementById('user-display-name');
+            const userDisplayRole = document.getElementById('user-display-role');
+
+            if (currentUser) {
+                if (navUserInfo) navUserInfo.classList.remove('hidden');
+                if (userDisplayName) userDisplayName.innerText = currentUser.name;
+                if (userDisplayRole) userDisplayRole.innerText = currentUser.role === 'kp' ? `Ketua Pengawal (${currentUser.Shift || ''})` : 'Anggota Keselamatan';
+
+                if (currentUser.role === 'anggota') {
+                    showPortal('section-portal-anggota');
+                    renderAnggotaOTTable();
+                } else if (currentUser.role === 'kp') {
+                    showPortal('section-portal-kp');
+                    renderKPPortalView();
+                }
+            } else {
+                if (navUserInfo) navUserInfo.classList.add('hidden');
+                showPortal('section-auth');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem(STORAGE_KEY_SESSION);
+            checkAuthState();
+        }
+
+        function showPortal(portalId) {
+            const sections = ['section-auth', 'section-portal-anggota', 'section-portal-kp', 'section-settings'];
+            sections.forEach(s => {
+                const elem = document.getElementById(s);
+                if (elem) elem.classList.add('hidden');
+            });
+            const target = document.getElementById(portalId);
+            if (target) target.classList.remove('hidden');
+        }
+
+        function formatDateDisplay(dateIsoStr) {
+            if (!dateIsoStr) return "-";
+            const [y, m, d] = dateIsoStr.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function renderAnggotaOTTable() {
+            if (!currentUser) return;
+            const records = getRecords();
+            const filterMonthElem = document.getElementById('filter-bulan-anggota');
+            const filterMonth = filterMonthElem ? filterMonthElem.value : getCurrentMonthString();
+            const tbody = document.getElementById('tbl-anggota-ot-body');
+            const emptyState = document.getElementById('anggota-empty-state');
+
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            const filtered = records.filter(r => r.userId === currentUser.id && r.tarikh.startsWith(filterMonth));
+
+            let totalHoursMonth = 0;
+            let totalHoursAll = 0;
+
+            records.filter(r => r.userId === currentUser.id).forEach(r => {
+                totalHoursAll += parseFloat(r.jam || 0);
+            });
+
+            if (filtered.length === 0) {
+                if (emptyState) emptyState.classList.remove('hidden');
+            } else {
+                if (emptyState) emptyState.classList.add('hidden');
+                filtered.forEach((r, index) => {
+                    totalHoursMonth += parseFloat(r.jam || 0);
+                    const formattedDate = formatDateDisplay(r.tarikh);
+                    const formattedKategori = formatCategoryDisplay(r.kategori);
+
+                    const isOffOrRest = (formattedKategori === 'OFF DAY' || formattedKategori === 'REST DAY');
+
+                    // Masa Masuk/Keluar untuk OFF DAY & REST DAY dipaparkan sebagai '-' sahaja
+                    const masaDisplay = isOffOrRest ? '<span class="text-slate-400 font-bold">-</span>' : `
+                        <span class="font-extrabold text-indigo-700 font-mono text-xs">${formatMasa24Jam(r.masaMasuk)} - ${formatMasa24Jam(r.masaKeluar)}</span>
+                    `;
+
+                    // Tempoh Jam untuk OFF DAY & REST DAY dipaparkan sebagai '-' sahaja
+                    const jamDisplay = isOffOrRest ? '<span class="text-slate-400 font-bold">-</span>' : `
+                        <span class="font-black text-indigo-600">${r.jam} Jam</span>
+                    `;
+
+                    const kpDisplay = isOffOrRest ? '<span class="text-slate-400 font-bold">-</span>' : `
+                        <span class="font-bold text-slate-800 block">${r.kpNama}</span>
+                        <span class="text-[10px] text-slate-400 font-mono block">${r.kpId}</span>
+                        <span class="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                            <i class="fa-regular fa-clock text-[9px]"></i> ${r.timestamp || '-'}
+                        </span>
+                    `;
+
+                    const tujuanDisplay = isOffOrRest ? '<span class="text-slate-400 font-bold">-</span>' : (r.tujuan || "-");
+
+                    const statusDisplay = isOffOrRest ? `
+                        <span class="px-2.5 py-1 bg-slate-100 text-slate-600 font-extrabold rounded-full text-[10px]">
+                            REKOD HARIAN
+                        </span>
+                    ` : `
+                        <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-extrabold rounded-full text-[10px]">
+                            Diluluskan
+                        </span>
+                    `;
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 text-center font-bold text-slate-500">${index + 1}</td>
+                        <td class="py-3 px-4 font-bold text-slate-800">${formattedDate}</td>
+                        <td class="py-3 px-4">${masaDisplay}</td>
+                        <td class="py-3 px-4">${jamDisplay}</td>
+                        <td class="py-3 px-4 font-bold text-xs uppercase ${getCategoryColorClass(r.kategori)}">${formattedKategori}</td>
+                        <td class="py-3 px-4">${kpDisplay}</td>
+                        <td class="py-3 px-4 text-slate-600">${tujuanDisplay}</td>
+                        <td class="py-3 px-4 text-center">${statusDisplay}</td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button onclick="openEditRecordModal('${r.id}')" class="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition text-xs font-bold" title="Edit Rekod">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="promptDeleteRecordWithQR('${r.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition text-xs font-bold" title="Padam Rekod">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            const statBulan = document.getElementById('anggota-stat-jam-bulan');
+            const statShift = document.getElementById('anggota-stat-Shift-bulan');
+            const statTotal = document.getElementById('anggota-stat-jam-total');
+
+            if (statBulan) statBulan.innerText = totalHoursMonth.toFixed(1) + " Jam";
+            if (statShift) statShift.innerText = filtered.length + " Shift OT";
+            if (statTotal) statTotal.innerText = totalHoursAll.toFixed(1) + " Jam";
+        }
+
+        function populateKPSelectDropdown(selectedKpId = null) {
+            const selectKP = document.getElementById('ot-input-kp-select');
+            if (!selectKP) return;
+            selectKP.innerHTML = "";
+
+            const users = getUsersList();
+            const kpList = users.filter(u => u.role === 'kp');
+
+            if (kpList.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.innerText = "Tiada Ketua Pengawal Berdaftar";
+                selectKP.appendChild(opt);
+            } else {
+                kpList.forEach(kp => {
+                    const opt = document.createElement('option');
+                    opt.value = kp.id;
+                    opt.innerText = `${kp.name} (${kp.id} - ${kp.Shift || 'NORMAL'})`;
+                    if (selectedKpId && selectedKpId === kp.id) {
+                        opt.selected = true;
+                    }
+                    selectKP.appendChild(opt);
+                });
+            }
+        }
+
+        function openScannerModal() {
+            if (!currentUser) return;
+            pendingActionType = 'CREATE';
+            pendingDeleteRecordId = null;
+
+            document.getElementById('modal-title-text').innerText = "Permohonan OT baru & Pengesahan QR";
+            document.getElementById('editing-record-id').value = "";
+            document.getElementById('modal-form-nama').innerText = currentUser.name;
+            document.getElementById('modal-form-id').innerText = currentUser.id;
+            document.getElementById('ot-input-tarikh').value = new Date().toISOString().slice(0, 10);
+            
+            document.getElementById('ot-input-masa-masuk').value = "0700";
+            document.getElementById('ot-input-masa-keluar').value = "1900";
+            document.getElementById('ot-input-jam').value = "";
+            document.getElementById('ot-input-tujuan').value = "";
+            document.getElementById('ot-input-kategori').value = "HARI KERJA BIASA";
+
+            populateKPSelectDropdown();
+            handleCategoryChange();
+
+            backToFormStep();
+            document.getElementById('modal-scanner').classList.remove('hidden');
+        }
+
+        function openEditRecordModal(recordId) {
+            const records = getRecords();
+            const rec = records.find(r => r.id === recordId);
+            if (!rec) return;
+
+            pendingActionType = 'UPDATE';
+            pendingDeleteRecordId = null;
+
+            document.getElementById('modal-title-text').innerText = "Edit Permohonan OT & Pengesahan QR KP";
+            document.getElementById('editing-record-id').value = rec.id;
+            document.getElementById('modal-form-nama').innerText = currentUser.name;
+            document.getElementById('modal-form-id').innerText = currentUser.id;
+            document.getElementById('ot-input-tarikh').value = rec.tarikh;
+            document.getElementById('ot-input-masa-masuk').value = rec.masaMasuk || "0700";
+            document.getElementById('ot-input-masa-keluar').value = rec.masaKeluar || "1900";
+            document.getElementById('ot-input-jam').value = rec.jam;
+            document.getElementById('ot-input-kategori').value = formatCategoryDisplay(rec.kategori || "HARI KERJA BIASA");
+            document.getElementById('ot-input-tujuan').value = rec.tujuan || "";
+
+            populateKPSelectDropdown(rec.kpId);
+            handleCategoryChange();
+
+            backToFormStep();
+            document.getElementById('modal-scanner').classList.remove('hidden');
+        }
+
+        function promptDeleteRecordWithQR(recordId) {
+            const records = getRecords();
+            const rec = records.find(r => r.id === recordId);
+            if (!rec) return;
+
+            if (!confirm(`Padam Rekod OT tarikh ${formatDateDisplay(rec.tarikh)}? Sila sediakan kod QR Ketua Pengawal untuk disahkan.`)) {
+                return;
+            }
+
+            pendingActionType = 'DELETE';
+            pendingDeleteRecordId = recordId;
+
+            document.getElementById('modal-title-text').innerText = "Pengesahan QR KP Untuk Padam Rekod";
+            document.getElementById('qr-step-instructions').innerText = `Sila halakan kamera ke Kod QR Ketua Pengawal untuk memadamkan rekod OT tarikh ${formatDateDisplay(rec.tarikh)} (${rec.jam} Jam).`;
+            document.getElementById('qr-step-summary-text').innerText = `PADAM REKOD: ${formatDateDisplay(rec.tarikh)} (${rec.jam} Jam) | KP: ${rec.kpNama}`;
+
+            document.getElementById('scanner-step-form').classList.add('hidden');
+            document.getElementById('btn-qr-back').classList.add('hidden');
+            document.getElementById('scanner-step-camera').classList.remove('hidden');
+            document.getElementById('modal-scanner').classList.remove('hidden');
+
+            startCameraScanner();
+        }
+
+        function handleCategoryChange() {
+            const kategori = document.getElementById('ot-input-kategori').value;
+            const isOffOrRest = (kategori === 'OFF DAY' || kategori === 'REST DAY');
+
+            const wrapKP = document.getElementById('wrapper-input-kp');
+            const wrapMasa = document.getElementById('wrapper-input-masa');
+            const wrapJam = document.getElementById('wrapper-input-jam');
+            const wrapTujuan = document.getElementById('wrapper-input-tujuan');
+            const btnText = document.getElementById('btn-submit-ot-text');
+            const btnIcon = document.getElementById('btn-submit-ot-icon');
+            const btnSubmit = document.getElementById('btn-submit-ot-step');
+
+            if (isOffOrRest) {
+                if (wrapKP) wrapKP.classList.add('hidden');
+                if (wrapMasa) wrapMasa.classList.add('hidden');
+                if (wrapJam) wrapJam.classList.add('hidden');
+                if (wrapTujuan) wrapTujuan.classList.add('hidden');
+
+                if (btnText) btnText.innerText = "Simpan & Hantar Permohonan (Submit)";
+                if (btnIcon) btnIcon.className = "fa-solid fa-paper-plane text-xs";
+                if (btnSubmit) {
+                    btnSubmit.className = "w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center gap-2";
+                }
+            } else {
+                if (wrapKP) wrapKP.classList.remove('hidden');
+                if (wrapMasa) wrapMasa.classList.remove('hidden');
+                if (wrapJam) wrapJam.classList.remove('hidden');
+                if (wrapTujuan) wrapTujuan.classList.remove('hidden');
+
+                if (btnText) btnText.innerText = "Seterusnya: Imbas QR Kelulusan KP";
+                if (btnIcon) btnIcon.className = "fa-solid fa-arrow-right text-xs";
+                if (btnSubmit) {
+                    btnSubmit.className = "w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center gap-2";
+                }
+            }
+        }
+
+        function closeScannerModal() {
+            stopCameraScanner();
+            const modal = document.getElementById('modal-scanner');
+            if (modal) modal.classList.add('hidden');
+            pendingActionType = 'CREATE';
+            pendingDeleteRecordId = null;
+        }
+
+        function backToFormStep() {
+            stopCameraScanner();
+            document.getElementById('btn-qr-back').classList.remove('hidden');
+            document.getElementById('scanner-step-camera').classList.add('hidden');
+            document.getElementById('scanner-step-form').classList.remove('hidden');
+        }
+
+        function proceedToQRScanStep() {
+            const editingId = document.getElementById('editing-record-id').value;
+            const tarikh = document.getElementById('ot-input-tarikh').value;
+            const kategori = document.getElementById('ot-input-kategori').value;
+            const isOffOrRest = (kategori === 'OFF DAY' || kategori === 'REST DAY');
+
+            if (!tarikh) {
+                alert("Sila pilih Tarikh OT!");
+                return;
+            }
+
+            const now = new Date();
+            const timeFormatted = now.toLocaleString('ms-MY', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', hour12: false
+            });
+
+            // JIKA KATEGORI ADALAH OFF DAY ATAU REST DAY -> AUTO SUBMIT (TANPA KP DAN TANPA TUJUAN)
+            if (isOffOrRest) {
+                let records = getRecords();
+
+                if (editingId) {
+                    const index = records.findIndex(r => r.id === editingId);
+                    if (index !== -1) {
+                        records[index] = {
+                            ...records[index],
+                            tarikh: tarikh,
+                            masaMasuk: "-",
+                            masaKeluar: "-",
+                            jam: 0,
+                            kategori: kategori,
+                            tujuan: "-",
+                            kpId: "-",
+                            kpNama: "-",
+                            timestamp: timeFormatted
+                        };
+                        saveRecords(records);
+                        alert(`Rekod ${kategori} Berjaya Dikemaskini!`);
+                    }
+                } else {
+                    const newRecord = {
+                        id: "REC-" + Date.now(),
+                        userId: currentUser.id,
+                        userName: currentUser.name,
+                        tarikh: tarikh,
+                        masaMasuk: "-",
+                        masaKeluar: "-",
+                        jam: 0,
+                        kategori: kategori,
+                        tujuan: "-",
+                        kpId: "-",
+                        kpNama: "-",
+                        timestamp: timeFormatted
+                    };
+
+                    records.unshift(newRecord);
+                    saveRecords(records);
+                    alert(`Rekod ${kategori} Berjaya Disimpan!`);
+                }
+
+                closeScannerModal();
+                renderAnggotaOTTable();
+                return;
+            }
+
+            // KATEGORI BIASA -> PERLUKAN IMBASAN QR
+            const masaMasuk = document.getElementById('ot-input-masa-masuk').value;
+            const masaKeluar = document.getElementById('ot-input-masa-keluar').value;
+            const jam = parseFloat(document.getElementById('ot-input-jam').value || 0);
+            const tujuan = document.getElementById('ot-input-tujuan').value.trim();
+            const selectedKpId = document.getElementById('ot-input-kp-select').value;
+
+            if (!selectedKpId) {
+                alert("Sila pilih Ketua Pengawal Bertugas!");
+                return;
+            }
+
+            if (!masaMasuk || !masaKeluar || jam <= 0 || !tujuan) {
+                alert("Sila lengkapkan semua butiran permohonan OT!");
+                return;
+            }
+
+            const users = getUsersList();
+            const targetKp = users.find(u => u.id === selectedKpId);
+            const kpNamaSelected = targetKp ? targetKp.name : "Ketua Pengawal";
+
+            currentFormPayload = { 
+                editingId,
+                tarikh, 
+                masaMasuk, 
+                masaKeluar, 
+                jam, 
+                kategori, 
+                tujuan, 
+                selectedKpId,
+                selectedKpNama: kpNamaSelected,
+                timeFormatted 
+            };
+
+            const actionLabel = editingId ? "KEMASKINI REKOD" : "PERMOHONAN baru";
+            document.getElementById('qr-step-instructions').innerText = "Sila halakan kamera ke Kod QR Ketua Pengawal bertugas untuk mengesahkan permohonan/kemaskini";
+            document.getElementById('qr-step-summary-text').innerText = `[${actionLabel}] ${jam.toFixed(1)} Jam (${formatMasa24Jam(masaMasuk)} - ${formatMasa24Jam(masaKeluar)}) | KP: ${kpNamaSelected}`;
+            
+            document.getElementById('scanner-step-form').classList.add('hidden');
+            document.getElementById('btn-qr-back').classList.remove('hidden');
+            document.getElementById('scanner-step-camera').classList.remove('hidden');
+
+            startCameraScanner();
+        }
+
+        function startCameraScanner() {
+            stopCameraScanner();
+
+            html5QrCodeScanner = new Html5Qrcode("qr-reader-camera");
+            const config = { fps: 5, qrbox: { width: 200, height: 200 } };
+
+            html5QrCodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => {
+                console.warn("Kamera tidak dapat diakses:", err);
+                alert("Gagal membuka kamera. Sila pastikan kebenaran kamera dibenarkan.");
+            });
+        }
+
+        function stopCameraScanner() {
+            if (html5QrCodeScanner) {
+                try {
+                    html5QrCodeScanner.stop().then(() => {
+                        html5QrCodeScanner.clear();
+                        html5QrCodeScanner = null;
+                    }).catch(err => {
+                        html5QrCodeScanner = null;
+                    });
+                } catch (e) {
+                    html5QrCodeScanner = null;
+                }
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            stopCameraScanner();
+            
+            const parts = decodedText.split('|');
+            if (parts.length >= 4 && parts[0] === 'VERIFIED_OT_APPROVAL') {
+                const scannedKpId = parts[1];
+                const scannedKpNama = parts[2];
+
+                const users = getUsersList();
+                const isValidKP = users.some(u => u.role === 'kp' && u.id === scannedKpId);
+
+                if (!isValidKP) {
+                    alert("Kod QR tidak dipunyai oleh Ketua Pengawal yang sah!");
+                    startCameraScanner();
+                    return;
+                }
+
+                let records = getRecords();
+
+                if (pendingActionType === 'DELETE' && pendingDeleteRecordId) {
+                    records = records.filter(r => r.id !== pendingDeleteRecordId);
+                    saveRecords(records);
+                    alert(`Rekod OT berjaya dipadam dengan pengesahan ${scannedKpNama} (${scannedKpId})!`);
+                } else if (currentFormPayload && currentFormPayload.editingId) {
+                    const index = records.findIndex(r => r.id === currentFormPayload.editingId);
+                    if (index !== -1) {
+                        records[index] = {
+                            ...records[index],
+                            tarikh: currentFormPayload.tarikh,
+                            masaMasuk: currentFormPayload.masaMasuk,
+                            masaKeluar: currentFormPayload.masaKeluar,
+                            jam: currentFormPayload.jam,
+                            kategori: currentFormPayload.kategori,
+                            tujuan: currentFormPayload.tujuan,
+                            kpId: scannedKpId,
+                            kpNama: scannedKpNama,
+                            timestamp: currentFormPayload.timeFormatted
+                        };
+                        saveRecords(records);
+                        alert(`Rekod OT Berjaya Dikemaskini & Diluluskan semula oleh ${scannedKpNama} (${scannedKpId})!`);
+                    }
+                } else if (currentFormPayload) {
+                    const newRecord = {
+                        id: "REC-" + Date.now(),
+                        userId: currentUser.id,
+                        userName: currentUser.name,
+                        tarikh: currentFormPayload.tarikh,
+                        masaMasuk: currentFormPayload.masaMasuk,
+                        masaKeluar: currentFormPayload.masaKeluar,
+                        jam: currentFormPayload.jam,
+                        kategori: currentFormPayload.kategori,
+                        tujuan: currentFormPayload.tujuan,
+                        kpId: scannedKpId,
+                        kpNama: scannedKpNama,
+                        timestamp: currentFormPayload.timeFormatted
+                    };
+
+                    records.unshift(newRecord);
+                    saveRecords(records);
+                    alert(`Permohonan OT Berjaya Diluluskan oleh ${scannedKpNama} (${scannedKpId})!`);
+                }
+
+                closeScannerModal();
+                renderAnggotaOTTable();
+            } else {
+                alert("Kod QR tidak sah!");
+                startCameraScanner();
+            }
+        }
+
+        function onScanFailure(error) {
+            // Quiet failure for frame processing
+        }
+
+        function renderKPPortalView() {
+            if (!currentUser) return;
+            document.getElementById('kp-info-nama').innerText = currentUser.name;
+            document.getElementById('kp-info-id').innerText = currentUser.id;
+            document.getElementById('kp-info-Shift').innerText = currentUser.Shift || "NORMAL";
+
+            generateKPQRCode();
+            renderKPMembersTable();
+        }
+
+        function generateKPQRCode() {
+            const qrBox = document.getElementById('kp-qrcode-box');
+            if (!qrBox) return;
+
+            qrBox.innerHTML = "";
+            const todayDate = new Date().toISOString().slice(0, 10);
+            
+            const qrPayload = `VERIFIED_OT_APPROVAL|${currentUser.id}|${currentUser.name}|${todayDate}`;
+
+            new QRCode(qrBox, {
+                text: qrPayload,
+                width: 180,
+                height: 180,
+                colorDark: "#1e1b4b",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        function renderKPMembersTable() {
+            const tbody = document.getElementById('tbl-kp-members-body');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            const users = getUsersList().filter(u => u.role === 'anggota');
+            const records = getRecords();
+            const filterMonthElem = document.getElementById('kp-filter-bulan');
+            const filterMonth = filterMonthElem ? filterMonthElem.value : getCurrentMonthString();
+            const searchInput = document.getElementById('kp-search-anggota');
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+            users.forEach((u, index) => {
+                if (query && !u.name.toLowerCase().includes(query) && !u.id.toLowerCase().includes(query)) {
+                    return;
+                }
+
+                const userRecords = records.filter(r => r.userId === u.id);
+                const monthRecords = userRecords.filter(r => r.tarikh.startsWith(filterMonth));
+
+                let totalMonthHours = 0;
+                monthRecords.forEach(r => totalMonthHours += parseFloat(r.jam || 0));
+
+                let totalAllHours = 0;
+                userRecords.forEach(r => totalAllHours += parseFloat(r.jam || 0));
+
+                const latestRecord = userRecords.length > 0 ? userRecords[0] : null;
+                const timestampDisplay = latestRecord && latestRecord.timestamp 
+                    ? `<span class="font-mono text-[11px] text-emerald-700 font-bold block">${latestRecord.timestamp}</span><span class="text-[9px] text-slate-400">KP: ${latestRecord.kpNama}</span>`
+                    : '<span class="text-slate-400 text-[11px]">-</span>';
+
+                const mainTr = document.createElement('tr');
+                mainTr.className = "hover:bg-slate-50 transition cursor-pointer select-none";
+                mainTr.onclick = () => toggleKPMemberDetail(`kp-detail-${u.id}`);
+                mainTr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-slate-800">
+                        <div class="flex items-center gap-2">
+                            <div>
+                                <div class="text-slate-900 font-extrabold">${u.name}</div>
+                                <div class="text-[10px] text-slate-400 font-mono">${u.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-center font-bold text-slate-700">${monthRecords.length}</td>
+                    <td class="py-3 px-4 text-center font-black text-indigo-600">${totalMonthHours.toFixed(1)} Jam</td>
+                    <td class="py-3 px-4 text-center font-black text-slate-700">${totalAllHours.toFixed(1)} Jam</td>
+                    <td class="py-3 px-4 text-center">${timestampDisplay}</td>
+                    <td class="py-3 px-2 text-center text-indigo-600 font-bold">
+                        <i id="icon-kp-detail-${u.id}" class="fa-solid fa-chevron-down transition-transform duration-200"></i>
+                    </td>
+                `;
+                tbody.appendChild(mainTr);
+
+                const detailTr = document.createElement('tr');
+                detailTr.id = `kp-detail-${u.id}`;
+                detailTr.className = "hidden bg-indigo-50/50 border-b border-indigo-100";
+                
+                let detailRowsHtml = "";
+                if (monthRecords.length === 0) {
+                    detailRowsHtml = `
+                        <tr>
+                            <td colspan="8" class="py-4 text-center text-slate-400 text-xs italic">
+                                Tiada rekod OT untuk anggota ini pada bulan pilihan (${filterMonth})
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    monthRecords.forEach((r, idx) => {
+                    const formattedDate = formatDateDisplay(r.tarikh);
+                    const formattedKategori = formatCategoryDisplay(r.kategori);
+
+                    const isOffOrRest = (formattedKategori === 'OFF DAY' || formattedKategori === 'REST DAY');
+
+                    const masaDetailDisplay = isOffOrRest ? '<span class="text-slate-400 font-bold">-</span>' : `
+                        <span class="font-extrabold text-indigo-700 font-mono text-xs">${formatMasa24Jam(r.masaMasuk)} - ${formatMasa24Jam(r.masaKeluar)}</span>
+                    `;
+
+                    const jamDetailDisplay = isOffOrRest ? '<span class="text-slate-400 font-bold">-</span>' : `
+                        <span class="font-black text-indigo-600">${r.jam} Jam</span>
+                    `;
+
+                    const kpDetailDisplay = isOffOrRest ? '<span class="text-slate-400 font-bold">-</span>' : `
+                        <span class="font-bold text-slate-800 block">${r.kpNama}</span>
+                        <span class="text-[9px] text-slate-400 font-mono block">${r.kpId}</span>
+                        <span class="text-[9px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                            <i class="fa-regular fa-clock text-[8px]"></i> ${r.timestamp || '-'}
+                        </span>
+                    `;
+
+                    const tujuanDetailDisplay = isOffOrRest ? '<span class="text-slate-400 font-bold">-</span>' : (r.tujuan || "-");
+
+                    const statusDetailDisplay = isOffOrRest ? `
+                        <span class="px-2 py-0.5 bg-slate-100 text-slate-600 font-extrabold rounded-full text-[9px]">REKOD HARIAN</span>
+                    ` : `
+                        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold rounded-full text-[9px]">Diluluskan</span>
+                    `;
+
+                    detailRowsHtml += `
+                        <tr class="bg-white/80 hover:bg-white transition border-b border-slate-100">
+                            <td class="py-2.5 px-3 text-center font-bold text-slate-500">${idx + 1}</td>
+                            <td class="py-2.5 px-3 font-bold text-slate-800">${formattedDate}</td>
+                            <td class="py-2.5 px-3">${masaDetailDisplay}</td>
+                            <td class="py-2.5 px-3">${jamDetailDisplay}</td>
+                            <td class="py-2.5 px-3 font-bold text-xs uppercase ${getCategoryColorClass(r.kategori)}">${formattedKategori}</td>
+                            <td class="py-2.5 px-3">${kpDetailDisplay}</td>
+                            <td class="py-2.5 px-3 text-slate-600">${tujuanDetailDisplay}</td>
+                            <td class="py-2.5 px-3 text-center">${statusDetailDisplay}</td>
+                        </tr>
+                    `;
+                });
+                }
+
+                detailTr.innerHTML = `
+                    <td colspan="6" class="p-4">
+                        <div class="bg-white rounded-2xl p-3 shadow-sm border border-indigo-100 space-y-2">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                <h4 class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-list-check text-indigo-600"></i>
+                                    Perincian Rekod OT Anggota: <span class="text-indigo-600 font-extrabold">${u.name} (${u.id})</span>
+                                </h4>
+                                <span class="text-[10px] font-bold text-slate-400">Bulan: ${filterMonth}</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] tracking-wider font-bold">
+                                        <tr>
+                                            <th class="py-2 px-3 text-center w-10">BIL</th>
+                                            <th class="py-2 px-3">Tarikh OT</th>
+                                            <th class="py-2 px-3">Masa Masuk / Keluar</th>
+                                            <th class="py-2 px-3">Tempoh Jam</th>
+                                            <th class="py-2 px-3">Kategori Hari</th>
+                                            <th class="py-2 px-3">KP Kelulusan</th>
+                                            <th class="py-2 px-3">Tujuan / Tugas</th>
+                                            <th class="py-2 px-3 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        ${detailRowsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(detailTr);
+            });
+        }
+
+        function toggleKPMemberDetail(detailId) {
+            const detailTr = document.getElementById(detailId);
+            const iconElem = document.getElementById(`icon-${detailId}`);
+            if (!detailTr) return;
+
+            if (detailTr.classList.contains('hidden')) {
+                detailTr.classList.remove('hidden');
+                if (iconElem) iconElem.classList.add('rotate-180');
+            } else {
+                detailTr.classList.add('hidden');
+                if (iconElem) iconElem.classList.remove('rotate-180');
+            }
+        }
+
+        function promptSettingsAccess() {
+            const inputPass = prompt("Sila masukkan PIN Keselamatan Tetapan:");
+            if (inputPass === "5313") {
+                showPortal('section-settings');
+                populateAdminMembersDropdown();
+                renderAdminAnggotaList();
+                renderAdminKPList();
+                renderOfficialOTForm();
+            } else if (inputPass !== null) {
+                alert("PIN Keselamatan Salah!");
+            }
+        }
+
+        function closeSettingsPage() {
+            checkAuthState();
+        }
+
+        function switchAdminTab(tabName) {
+            const btnOfficial = document.getElementById('tab-btn-official-form');
+            const btnAnggota = document.getElementById('tab-btn-anggota-management');
+            const btnKP = document.getElementById('tab-btn-kp-management');
+            
+            const tabOfficial = document.getElementById('admin-tab-official-form');
+            const tabAnggota = document.getElementById('admin-tab-anggota-management');
+            const tabKP = document.getElementById('admin-tab-kp-management');
+
+            btnOfficial.className = "px-5 py-2.5 font-bold text-xs rounded-t-2xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition flex items-center gap-2";
+            btnAnggota.className = "px-5 py-2.5 font-bold text-xs rounded-t-2xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition flex items-center gap-2";
+            btnKP.className = "px-5 py-2.5 font-bold text-xs rounded-t-2xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition flex items-center gap-2";
+
+            tabOfficial.classList.add('hidden');
+            tabAnggota.classList.add('hidden');
+            tabKP.classList.add('hidden');
+
+            if (tabName === 'official-form') {
+                btnOfficial.className = "px-5 py-2.5 font-bold text-xs rounded-t-2xl bg-indigo-600 text-white transition flex items-center gap-2";
+                tabOfficial.classList.remove('hidden');
+            } else if (tabName === 'anggota-management') {
+                btnAnggota.className = "px-5 py-2.5 font-bold text-xs rounded-t-2xl bg-indigo-600 text-white transition flex items-center gap-2";
+                tabAnggota.classList.remove('hidden');
+                renderAdminAnggotaList();
+            } else {
+                btnKP.className = "px-5 py-2.5 font-bold text-xs rounded-t-2xl bg-indigo-600 text-white transition flex items-center gap-2";
+                tabKP.classList.remove('hidden');
+            }
+        }
+
+        function populateAdminMembersDropdown() {
+            const select = document.getElementById('admin-select-member');
+            if (!select) return;
+            select.innerHTML = "";
+
+            const searchInput = document.getElementById('admin-search-member');
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+            const users = getUsersList().filter(u => u.role === 'anggota');
+            const filteredUsers = users.filter(u => 
+                !query || u.name.toLowerCase().includes(query) || u.id.toLowerCase().includes(query)
+            );
+
+            if (filteredUsers.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.innerText = "Tiada anggota ditemui";
+                select.appendChild(opt);
+                return;
+            }
+
+            filteredUsers.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.innerText = `${u.name} (${u.id})`;
+                select.appendChild(opt);
+            });
+
+            renderOfficialOTForm();
+        }
+
+        function filterAdminMembersDropdown() {
+            populateAdminMembersDropdown();
+        }
+
+        function renderAdminAnggotaList() {
+            const tbody = document.getElementById('tbl-admin-anggota-list');
+            const countElem = document.getElementById('admin-count-anggota');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            const users = getUsersList().filter(u => u.role === 'anggota');
+            if (countElem) countElem.innerText = users.length;
+
+            const searchInput = document.getElementById('admin-search-anggota-list');
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            const records = getRecords();
+
+            const filtered = users.filter(u => !query || u.name.toLowerCase().includes(query) || u.id.toLowerCase().includes(query));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400 italic">Tiada anggota ditemui.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(u => {
+                const userShiftCount = records.filter(r => r.userId === u.id).length;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-indigo-600">${u.id}</td>
+                    <td class="py-3 px-4 font-bold text-slate-800">${u.name}</td>
+                    <td class="py-3 px-4 font-mono text-slate-500">${u.password || '123'}</td>
+                    <td class="py-3 px-4 text-center font-bold text-slate-700">${userShiftCount} Shift</td>
+                    <td class="py-3 px-4 text-right">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button onclick="openEditAnggotaModal('${u.id}')" class="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition text-xs font-bold" title="Edit / Tukar Kata Laluan">
+                                <i class="fa-solid fa-user-pen"></i>
+                            </button>
+                            <button onclick="deleteAnggotaAccount('${u.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition text-xs font-bold" title="Padam Anggota">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openEditAnggotaModal(userId) {
+            const users = getUsersList();
+            const u = users.find(usr => usr.id === userId);
+            if (!u) return;
+
+            document.getElementById('edit-anggota-original-id').value = u.id;
+            document.getElementById('edit-anggota-nama').value = u.name;
+            document.getElementById('edit-anggota-id').value = u.id;
+            document.getElementById('edit-anggota-password').value = u.password || '123';
+
+            document.getElementById('modal-edit-anggota').classList.remove('hidden');
+        }
+
+        function closeEditAnggotaModal() {
+            document.getElementById('modal-edit-anggota').classList.add('hidden');
+        }
+
+        function handleSaveEditAnggota(e) {
+            e.preventDefault();
+            const originalId = document.getElementById('edit-anggota-original-id').value;
+            const newNama = document.getElementById('edit-anggota-nama').value.trim();
+            const newId = document.getElementById('edit-anggota-id').value.trim().toUpperCase();
+            const newPass = document.getElementById('edit-anggota-password').value.trim();
+
+            let users = getUsersList();
+
+            if (newId !== originalId && users.some(u => u.id.toUpperCase() === newId)) {
+                alert("ID Pass / No. Staf baru ini telah digunakan oleh akaun lain!");
+                return;
+            }
+
+            const index = users.findIndex(u => u.id === originalId);
+            if (index !== -1) {
+                users[index].name = newNama;
+                users[index].id = newId;
+                users[index].password = newPass;
+                saveUsersList(users);
+
+                let records = getRecords();
+                let updatedRecords = false;
+                records.forEach(r => {
+                    if (r.userId === originalId) {
+                        r.userId = newId;
+                        r.userName = newNama;
+                        updatedRecords = true;
+                    }
+                });
+                if (updatedRecords) saveRecords(records);
+
+                if (currentUser && currentUser.id === originalId) {
+                    currentUser.name = newNama;
+                    currentUser.id = newId;
+                    currentUser.password = newPass;
+                    localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(currentUser));
+                }
+
+                alert("Maklumat anggota berjaya dikemaskini!");
+                closeEditAnggotaModal();
+                renderAdminAnggotaList();
+                populateAdminMembersDropdown();
+            }
+        }
+
+        function deleteAnggotaAccount(userId) {
+            if (confirm(`Adakah anda pasti mahu memadamkan akaun anggota ${userId}? Rekod berkaitan akan kekal.`)) {
+                let users = getUsersList();
+                users = users.filter(u => u.id !== userId);
+                saveUsersList(users);
+                renderAdminAnggotaList();
+                populateAdminMembersDropdown();
+            }
+        }
+
+        function renderAdminKPList() {
+            const tbody = document.getElementById('tbl-admin-kp-list');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            const kps = getUsersList().filter(u => u.role === 'kp');
+            kps.forEach(kp => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-indigo-600">${kp.id}</td>
+                    <td class="py-3 px-4 font-bold text-slate-800">${kp.name}</td>
+                    <td class="py-3 px-4 font-semibold text-amber-600">${kp.Shift || 'NORMAL'}</td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="deleteKPAccount('${kp.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition text-xs font-bold" title="Padam KP">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleRegisterKP(e) {
+            e.preventDefault();
+            const nama = document.getElementById('add-kp-nama').value.trim();
+            const id = document.getElementById('add-kp-id').value.trim().toUpperCase();
+            const Shift = document.getElementById('add-kp-Shift').value;
+            const pass = document.getElementById('add-kp-password').value.trim();
+
+            const users = getUsersList();
+            if (users.some(u => u.id.toUpperCase() === id)) {
+                alert("ID KP ini telah wujud!");
+                return;
+            }
+
+            users.push({ id, name: nama, role: 'kp', Shift, password: pass });
+            saveUsersList(users);
+
+            alert(`Ketua Pengawal ${nama} (${id}) berjaya didaftarkan!`);
+            document.getElementById('form-register-kp').reset();
+            renderAdminKPList();
+            populateKPSelectDropdown();
+        }
+
+        function deleteKPAccount(kpId) {
+            if (confirm(`Adakah anda pasti mahu memadamkan akaun Ketua Pengawal ${kpId}?`)) {
+                let users = getUsersList();
+                users = users.filter(u => u.id !== kpId);
+                saveUsersList(users);
+                renderAdminKPList();
+                populateKPSelectDropdown();
+            }
+        }
+
+        function renderOfficialOTForm() {
+            const selectMember = document.getElementById('admin-select-member');
+            const selectMonth = document.getElementById('admin-filter-month');
+            if (!selectMember || !selectMonth) return;
+
+            const memberId = selectMember.value;
+            const filterMonth = selectMonth.value;
+            if (!memberId || !filterMonth) return;
+
+            const users = getUsersList();
+            const member = users.find(u => u.id === memberId);
+            if (!member) return;
+
+            document.getElementById('p2-nama-pekerja').innerText = member.name;
+            document.getElementById('p2-no-pekerja').innerText = member.id;
+
+            const [year, month] = filterMonth.split('-');
+            const monthNames = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
+            document.getElementById('p2-bulan-tahun').innerText = `${monthNames[parseInt(month) - 1]} ${year}`;
+
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const records = getRecords().filter(r => r.userId === memberId && r.tarikh.startsWith(filterMonth));
+
+            const tbody = document.getElementById('tbl-official-body');
+            tbody.innerHTML = "";
+
+            let totalOTMonth = 0;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayStr = String(day).padStart(2, '0');
+                const fullDate = `${filterMonth}-${dayStr}`;
+
+                const formattedDisplayDate = `${dayStr}/${month}/${year}`;
+                const match = records.find(r => r.tarikh === fullDate);
+
+                const tr = document.createElement('tr');
+                if (match) {
+                    totalOTMonth += parseFloat(match.jam || 0);
+                    const formattedKategori = formatCategoryDisplay(match.kategori);
+                    const isOffOrRest = (formattedKategori === 'OFF DAY' || formattedKategori === 'REST DAY');
+
+                    const masaMasukVal = isOffOrRest ? "-" : (match.masaMasuk ? formatMasa24Jam(match.masaMasuk) : "-");
+                    const masaKeluarVal = isOffOrRest ? "-" : (match.masaKeluar ? formatMasa24Jam(match.masaKeluar) : "-");
+                    const jamVal = isOffOrRest ? "-" : `${match.jam} Jam`;
+                    const officialTujuan = isOffOrRest ? formattedKategori : `${match.tujuan} (${formattedKategori})`;
+                    const officialKp = isOffOrRest ? "-" : `${match.kpNama} (${match.kpId})`;
+                    const officialTime = isOffOrRest ? "-" : (match.timestamp || '-');
+
+                    tr.innerHTML = `
+                        <td>${day}</td>
+                        <td>${formattedDisplayDate}</td>
+                        <td class="font-bold font-mono">${masaMasukVal}</td>
+                        <td class="font-bold font-mono">${masaKeluarVal}</td>
+                        <td class="font-bold">${jamVal}</td>
+                        <td>${officialTujuan}</td>
+                        <td class="font-bold text-[10px]">${officialKp}</td>
+                        <td class="font-mono text-[10px] font-bold text-slate-800">${officialTime}</td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td>${day}</td>
+                        <td>${formattedDisplayDate}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            }
+
+            document.getElementById('p2-total-ot').innerText = totalOTMonth.toFixed(1) + " JAM";
+        }
+    </script>
+</body>
+</html>
